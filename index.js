@@ -212,7 +212,7 @@ function changed(Model, options) {
       next();
     }
 
-  });
+  };
 
   Model.shouldSkipProperty = function(property, skipChanged) {
     if (typeof skipChanged === 'boolean') {
