@@ -159,14 +159,14 @@ function changed(Model, options) {
 
       ctx.hookState.changedItems = Model.getChangedProperties(ctx.currentInstance, ctx.data, properties);
 
-      next();
+      hookChangedProperties(ctx, next);
     } else if (ctx.instance) {
       debug('Working with existing instance %o', ctx.instance);
       // Figure out wether this item has changed properties.
       ctx.instance.itemHasChangedProperties(ctx.instance, properties)
         .then(function(changed) {
           ctx.hookState.changedItems = changed;
-          next();
+          hookChangedProperties(ctx, next);
         }).catch(next);
     } else {
       debug('anything else: upsert, updateAll');
@@ -174,19 +174,19 @@ function changed(Model, options) {
       Model.itemsWithChangedProperties(ctx.where, ctx.data, properties)
         .then(function(changed) {
           ctx.hookState.changedItems = changed;
-          next();
+          hookChangedProperties(ctx, next);
         }).catch(next);
     }
   });
 
-  Model.observe('after save', function(ctx, next) {
+  function hookChangedProperties(ctx, next) {
 
     // Convert the changeItems to Properties
     if (ctx.hookState.changedItems && !_.isEmpty(ctx.hookState.changedItems)) {
 
       var properties = convertItemsToProperties(ctx.hookState.changedItems);
 
-      debug('after save changedProperties %o', properties);
+      debug('hookChangedProperties %o', properties);
 
       async.forEachOf(properties, function(changeset, property, cb) {
         var callback = options.properties[property];
@@ -198,7 +198,7 @@ function changed(Model, options) {
           return cb(new Error(util.format('Function %s not found on Model', callback)));
         }
         debug('after save: invoke %s with %o', callback, changeset);
-        Model[callback](changeset).then(function() {
+        Model[callback](changeset, ctx).then(function() {
           cb();
         }).catch(cb);
       }, function(err) {
