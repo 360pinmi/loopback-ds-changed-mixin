@@ -149,6 +149,7 @@ function changed(Model, options) {
 
     var properties = _.keys(options.properties);
 
+    debug("before save to check properties: %o", properties);
     debug('before save ctx.instance: %o', ctx.instance);
     debug('before save ctx.currentInstance: %o', ctx.currentInstance);
     debug('before save ctx.data: %o', ctx.data);
